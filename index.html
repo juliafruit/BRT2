@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>BRT Web App Test</title>
+    <style>
+
+        html,
+        body,
+        #viewDiv{
+            padding: 0;
+            margin: 0 ;
+            height: 100%;
+            width: 100%;
+        }
+
+        #layerToggle{
+            bottom: 20px;
+            right: 20px;
+            position: absolute;
+            z-index: 99;
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            opacity: 0.75;
+
+        }
+    </style>
+
+    <link rel="stylesheet"
+          href="https://js.arcgis.com/4.12/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.12/"></script>
+
+    <script>
+        require(["esri/Map",
+            "esri/views/MapView",
+            "esri/layers/FeatureLayer",
+            "esri/widgets/Editor",
+            "esri/widgets/Legend"], function (Map, MapView, FeatureLayer, Editor, Legend) {
+                
+
+                var featureLayer = new FeatureLayer({
+                    url: "https://services6.arcgis.com/eMrIz3lo6uRXI3OJ/arcgis/rest/services/BRT_Algorithm_Generated_Corridors_20190917/FeatureServer/0?token=pxoBjYVi_rqj3FtpoUoW98-rbIoVvS8I7DV9TRtz91pMrD1s8k1KGThzeTkX88sRTyfXs8DAp7FY66I4iy5m5awwD-ga6xiMWeUmZdjcgHZttvuWyVdh3rlGYl74Nmh08oHVfQoBsz7M3_B1I-9HD3nxJDZIky5LWLp0t5l_WS05OCb7DNr4mrBSDRbWu9OXxbb87wEWJDDBdXFS7Ho-qLXDu0dNSvAiY8d5adbmKrcsGCTMnv6CWY2GreTIpRu4wZVXIUkFMbYGBPifSrwt3w.."
+                });
+
+                var metroLayer = new FeatureLayer({
+                    url: "https://maps.lacity.org/lahub/rest/services/Metro_Bus_and_Rail/MapServer/1",
+                    id: "metro",
+                    visible: false
+                });
+
+            var map = new Map({
+                basemap: "topo",
+                layers: [featureLayer]
+            });
+                var view = new MapView({
+                    container: "viewDiv",
+                    map: map,
+                    zoom: 11,
+                    center: [-118.24, 34.05]
+                });
+                
+                var editor = new Editor({
+                    view: view
+                });
+                var legend = new Legend({
+                    view: view
+                });
+                var metroLayerToggle = document.getElementById("metro");
+                metroLayerToggle.addEventListener("change", function () {
+                    metroLayer.visible = metroLayerToggle.checked;
+                });
+                map.add(featureLayer);
+                map.layers.add(metroLayer);
+                view.ui.add(editor, "top-right");
+                view.ui.add(legend, "bottom-left")
+        });
+    </script>
+</head>
+<body>
+    <div id= "viewDiv"></div>
+    <span id="layerToggle" class="esri-widget"> <input type="checkbox" id="metro" checked /> MetroStops </span>
+</body>
+</html>
