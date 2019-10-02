@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport"
+          content="initial-scale=1, maximum-scale=1,user-scalable=no" />
+    <title>Feature widget in a side panel - 4.12</title>
+
+    <link rel="stylesheet"
+          href="https://js.arcgis.com/4.12/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.12/"></script>
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+
+    <style>
+
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        #viewDiv {
+            float: left;
+            padding-top: 0px;
+            padding-bottom: 0px;
+            margin: 0;
+            height: 90%;
+            width: 75%;
+        }
+        /*
+        #layerToggle {
+            bottom: 100px;
+            left: 20px;
+            position: absolute;
+            z-index: 99;
+            background-color: white;
+            border-radius: 8px;
+            padding: 10px;
+            opacity: 0.75;
+        }
+            */
+        #feature-node {
+            float: left;
+            
+            width: 25%;
+            height: 90%;
+            padding: 0px;
+        }
+
+        #right-node{
+            position: absolute;
+            z-index: 1;
+            right: 0px;
+            top: 75px;
+            width: 10%;
+            height: 50%;
+            padding: 0px;
+        }
+
+    </style>
+
+    <script>
+        require([
+            "esri/WebMap",
+            "esri/layers/FeatureLayer",
+            "esri/views/MapView",
+            "esri/widgets/Feature",
+            "esri/widgets/Editor",
+            "esri/widgets/Legend",
+            "esri/widgets/LayerList",
+            "esri/widgets/BasemapGallery"
+        ], function (WebMap, FeatureLayer, MapView, Feature, Editor, Legend, LayerList, BasemapGallery) {
+            const fLayer = new FeatureLayer({
+                portalItem: {
+                    id: "6c63477e86ea4560be6bed6f68d395d3",
+                    //layerId: 2,
+                    outFields: ["*"], 
+                },
+                    //visible: false
+            });
+            
+            /*const metroLayer = new FeatureLayer({
+                portalItem: {
+                    id: "6679d1ccc3744a7f87f7855e7ce33395"
+                },
+                visible: false
+            })
+            */
+            const map = new WebMap({
+                portalItem: {
+                    // autocasts as new PortalItem
+                    id: "b804e6caf21e4d12a780291292499b35"
+                },
+               layers: [fLayer]
+            });
+                
+
+            const view = new MapView({
+                container: "viewDiv",
+                map: map,
+                center: [-118.24, 34.05],
+                zoom: 11,
+                popup: {
+                    autoOpenEnabled: false
+                }
+            });
+            // Layers list for turning on and off layers 
+            view.when(function () {
+                    var layerList = new LayerList({
+                        view: view,
+                        container: "feature-node"
+                    });
+                });
+
+            // graphics for mouse over function 
+            view.when().then(function () {
+                // Create a default graphic for when the application starts
+                var graphic = {
+                    popupTemplate: {
+                        content: "Mouse over layers to show details"
+                    }
+                };
+
+                // Provide graphic to a new instance of a Feature widget
+                const feature = new Feature({
+                    container: "feature-node",
+                    graphic: graphic,
+                    map: view.map,
+                    spatialReference: view.spatialReference,
+                });
+
+                // my own widgets
+                var editor = new Editor({
+                    container: "feature-node",
+                    //graphic: graphic,
+                    view: view,
+                    //spatialReference: view.spatialReference
+                });
+
+                var legend = new Legend({
+                    container: "right-node",
+                    view: view
+                });
+
+                //const baseMap = new BasemapGallery({
+                 //   container: "right-node",
+                 //   view: view
+               // });
+
+               // var metroLayerToggle = document.getElementById("6679d1ccc3744a7f87f7855e7ce33395");
+
+               /* metroLayerToggle.addEventListener("change", function () {
+                    metroLayer.visible = metroLayerToggle.checked;
+                    container: "feature-node";
+                });*/ 
+                view.whenLayerView(fLayer).then(function (layerView) {
+                    let highlight;
+                    // listen for the pointer-move event on the View
+                    view.on("pointer-move", function (event) {
+                        // Perform a hitTest on the View
+                        view.hitTest(event).then(function (event) {
+                            // Make sure graphic has a popupTemplate
+                            let results = event.results.filter(function (result) {
+                                return result.graphic.layer.popupTemplate;
+                            });
+                            let result = results[0];
+                            highlight && highlight.remove();
+                            // Update the graphic of the Feature widget
+                            // on pointer-move with the result
+                            if (result) {
+                                feature.graphic = result.graphic;
+                                highlight = layerView.highlight(result.graphic);
+                            } else {
+                                feature.graphic = graphic;
+                            }
+                        });
+
+                    });
+
+                });
+
+            });
+               // map.view.add(baseMap, { position: "top-right" });
+        map.layers.add(metroLayer)
+
+      
+        });
+    </script>
+</head>
+
+<body>
+    <div class="w3-container w3-blue-grey">
+        <h1> BRT Vision Proposals</h1>
+    </div> 
+    <div id="right-node" class="esri-widget"></div>
+    <div id="feature-node" class="esri-widget"></div>
+    <div id="viewDiv"></div>
+</body>
+</html>
